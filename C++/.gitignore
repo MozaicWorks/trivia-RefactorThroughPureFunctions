@@ -2,7 +2,9 @@ Debug
 .project
 .cproject
 cmake-build-debug
+cmake-build-release
 .idea
 out/trivia
 out/triviaTests
 out/triviaGTests
+out/results/*.txt
