@@ -11,7 +11,7 @@ class Game{
 		private:
 			vector<string> players;
 
-			int places[6];
+			vector<int> places;
 			int purses[6];
 
 			bool inPenaltyBox[6];
@@ -26,7 +26,7 @@ class Game{
 
 public:
 	Game();
-	string createRockQuestion(int index);
+
 	bool isPlayable();
 	bool add(string playerName);
 
@@ -43,6 +43,14 @@ public:
 
 private:
 	bool didPlayerWin();
+
+	void doSomethingWhenInPenaltyBoxAndOddRoll(int roll);
+
+	void doSomethingWhenInPenaltyBoxAndEvenRoll();
+
+	void doSomethingWhenNotInPenaltyBox(int roll);
+
+	void printAndRemovePopQuestion(const string &theCurrentCategory);
 };
 
 #endif /* GAME_H_ */

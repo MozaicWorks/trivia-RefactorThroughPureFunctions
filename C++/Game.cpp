@@ -2,33 +2,70 @@
 #include <cstdio>
 #include <iostream>
 #include <sstream>
+#include <functional>
+#include <numeric>
 
 using namespace std;
+using namespace std::placeholders;
 
-Game::Game() : currentPlayer(0), places{}, purses{} {
-	for (int i = 0; i < 50; i++) {
+auto createQuestionLambda = [](const string &prefix, const int index) -> string {
+	return prefix + " " + to_string(index);
+};
 
-		ostringstream oss(ostringstream::out);
-		oss << "Pop Question " << i;
+auto range = [](const int count) {
+	vector<int> values(count);
+	iota(begin(values), end(values), 0);
+	return values;
+};
 
-		popQuestions.push_back(oss.str());
+template<typename Destination>
+auto transformAll = [](const auto &source, const auto lambda) {
+	Destination result;
+	transform(source.begin(), source.end(), back_inserter(result), lambda);
+	return result;
+};
 
-		char str[255];
-		sprintf(str, "Science Question %d", i);
-		scienceQuestions.push_back(str);
+auto createQuestions = [](const int &count, const string &questionPrefix) {
+	auto theRange = range(count);
+	return transformAll<list<string>>(theRange, bind(createQuestionLambda, questionPrefix, _1));
+};
 
-		char str1[255];
-		sprintf(str1, "Sports Question %d", i);
-		sportsQuestions.push_back(str1);
+auto create50Questions = bind(createQuestions, 50, _1);
 
-		rockQuestions.push_back(createRockQuestion(i));
-	}
+auto oddRollLambda = [](const int roll) {
+	return roll % 2 != 0;
+};
+
+auto advancePlaceLambda = [](const int oldPlace, const int roll) {
+	int newPosition = oldPlace + roll;
+	if (newPosition > 11) newPosition = newPosition - 12;
+	return newPosition;
+};
+
+auto updatePlace = [](const vector<int> &places, const int currentPlayer, auto updateFunction) -> vector<int> {
+	vector<int> newPlaces(places);
+	newPlaces[currentPlayer] = updateFunction();
+	return newPlaces;
+};
+
+auto categoryFromPlaceLambda(const int place) {
+	if (place == 0) return "Pop";
+	if (place == 4) return "Pop";
+	if (place == 8) return "Pop";
+	if (place == 1) return "Science";
+	if (place == 5) return "Science";
+	if (place == 9) return "Science";
+	if (place == 2) return "Sports";
+	if (place == 6) return "Sports";
+	if (place == 10) return "Sports";
+	return "Rock";
 }
 
-string Game::createRockQuestion(int index) {
-	char indexStr[127];
-	sprintf(indexStr, "Rock Question %d", index);
-	return indexStr;
+Game::Game() : currentPlayer(0), places(6), purses{} {
+	popQuestions = create50Questions("Pop Question");
+	scienceQuestions = create50Questions("Science Question");
+	sportsQuestions = create50Questions("Sports Question");
+	rockQuestions = create50Questions("Rock Question");
 }
 
 bool Game::isPlayable() {
@@ -55,64 +92,68 @@ void Game::roll(int roll) {
 	cout << "They have rolled a " << roll << endl;
 
 	if (inPenaltyBox[currentPlayer]) {
-		if (roll % 2 != 0) {
-			isGettingOutOfPenaltyBox = true;
-
-			cout << players[currentPlayer] << " is getting out of the penalty box" << endl;
-			places[currentPlayer] = places[currentPlayer] + roll;
-			if (places[currentPlayer] > 11) places[currentPlayer] = places[currentPlayer] - 12;
-
-			cout << players[currentPlayer] << "'s new location is " << places[currentPlayer] << endl;
-			cout << "The category is " << currentCategory() << endl;
-			askQuestion();
+		if (oddRollLambda(roll)) {
+			doSomethingWhenInPenaltyBoxAndOddRoll(roll);
 		} else {
-			cout << players[currentPlayer] << " is not getting out of the penalty box" << endl;
-			isGettingOutOfPenaltyBox = false;
+			doSomethingWhenInPenaltyBoxAndEvenRoll();
 		}
-
 	} else {
-
-		places[currentPlayer] = places[currentPlayer] + roll;
-		if (places[currentPlayer] > 11) places[currentPlayer] = places[currentPlayer] - 12;
-
-		cout << players[currentPlayer] << "'s new location is " << places[currentPlayer] << endl;
-		cout << "The category is " << currentCategory() << endl;
-		askQuestion();
+		doSomethingWhenNotInPenaltyBox(roll);
 	}
+}
 
+void Game::doSomethingWhenNotInPenaltyBox(int roll) {
+	places = updatePlace(places, currentPlayer, bind(advancePlaceLambda, places[currentPlayer], roll));
+
+	cout << players[currentPlayer] << "'s new location is " << places[currentPlayer] << endl;
+	cout << "The category is " << currentCategory() << endl;
+	askQuestion();
+}
+
+void Game::doSomethingWhenInPenaltyBoxAndEvenRoll() {
+	cout << players[currentPlayer] << " is not getting out of the penalty box" << endl;
+	isGettingOutOfPenaltyBox = false;
+}
+
+void Game::doSomethingWhenInPenaltyBoxAndOddRoll(int roll) {
+	isGettingOutOfPenaltyBox = true;
+
+	cout << players[currentPlayer] << " is getting out of the penalty box" << endl;
+	places[currentPlayer] = places[currentPlayer] + roll;
+	if (places[currentPlayer] > 11) places[currentPlayer] = places[currentPlayer] - 12;
+
+	cout << players[currentPlayer] << "'s new location is " << places[currentPlayer] << endl;
+	cout << "The category is " << currentCategory() << endl;
+	askQuestion();
 }
 
 void Game::askQuestion() {
-	if (currentCategory() == "Pop") {
-		cout << popQuestions.front() << endl;
-		popQuestions.pop_front();
-	}
-	if (currentCategory() == "Science") {
+	string theCurrentCategory = categoryFromPlaceLambda(places[currentPlayer]);
+	printAndRemovePopQuestion(theCurrentCategory);
+
+	if (theCurrentCategory == "Science") {
 		cout << scienceQuestions.front() << endl;
 		scienceQuestions.pop_front();
 	}
-	if (currentCategory() == "Sports") {
+	if (theCurrentCategory == "Sports") {
 		cout << sportsQuestions.front() << endl;
 		sportsQuestions.pop_front();
 	}
-	if (currentCategory() == "Rock") {
+	if (theCurrentCategory == "Rock") {
 		cout << rockQuestions.front() << endl;
 		rockQuestions.pop_front();
 	}
 }
 
+void Game::printAndRemovePopQuestion(const string &theCurrentCategory) {
+	if (theCurrentCategory == "Pop") {
+		cout << popQuestions.front() << endl;
+		popQuestions.pop_front();
+	}
+}
 
 string Game::currentCategory() {
-	if (places[currentPlayer] == 0) return "Pop";
-	if (places[currentPlayer] == 4) return "Pop";
-	if (places[currentPlayer] == 8) return "Pop";
-	if (places[currentPlayer] == 1) return "Science";
-	if (places[currentPlayer] == 5) return "Science";
-	if (places[currentPlayer] == 9) return "Science";
-	if (places[currentPlayer] == 2) return "Sports";
-	if (places[currentPlayer] == 6) return "Sports";
-	if (places[currentPlayer] == 10) return "Sports";
-	return "Rock";
+	return categoryFromPlaceLambda(places[currentPlayer]);
 }
 
 bool Game::wasCorrectlyAnswered() {
