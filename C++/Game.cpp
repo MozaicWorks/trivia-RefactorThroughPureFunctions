@@ -23,6 +23,12 @@ auto createScienceQuestion_Lambda = [](const int i) -> string {
 	return str;
 };
 
+auto createPopQuestion_Lambda = [](const int i) -> string {
+	ostringstream oss(ostringstream::out);
+	oss << "Pop Question " << i;
+	return oss.str();
+};
+
 Game::Game() : currentPlayer(0), places{}, purses{} {
 	for (int i = 0; i < 50; i++) {
 
@@ -32,11 +38,7 @@ Game::Game() : currentPlayer(0), places{}, purses{} {
 }
 
 void Game::doSomething(const int i) {
-	ostringstream oss(ostringstream::out);
-	oss << "Pop Question " << i;
-
-	popQuestions.push_back(oss.str());
-
+	popQuestions.push_back(createPopQuestion_Lambda(i));
 	scienceQuestions.push_back(createScienceQuestion_Lambda(i));
 	sportsQuestions.push_back(createSportsQuestion_Lambda(i));
 	rockQuestions.push_back(createRockQuestion_Lambda(i));
