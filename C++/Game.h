@@ -44,8 +44,6 @@ public:
 private:
 	bool didPlayerWin();
 
-	void doSomething(const int i);
-
 };
 
 #endif /* GAME_H_ */

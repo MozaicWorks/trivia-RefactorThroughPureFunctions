@@ -31,17 +31,11 @@ auto createPopQuestion_Lambda = [](const int i) -> string {
 
 Game::Game() : currentPlayer(0), places{}, purses{} {
 	for (int i = 0; i < 50; i++) {
-
-		doSomething(i);
-
+		popQuestions.push_back(createPopQuestion_Lambda(i));
+		scienceQuestions.push_back(createScienceQuestion_Lambda(i));
+		sportsQuestions.push_back(createSportsQuestion_Lambda(i));
+		rockQuestions.push_back(createRockQuestion_Lambda(i));
 	}
-}
-
-void Game::doSomething(const int i) {
-	popQuestions.push_back(createPopQuestion_Lambda(i));
-	scienceQuestions.push_back(createScienceQuestion_Lambda(i));
-	sportsQuestions.push_back(createSportsQuestion_Lambda(i));
-	rockQuestions.push_back(createRockQuestion_Lambda(i));
 }
 
 bool Game::isPlayable() {
