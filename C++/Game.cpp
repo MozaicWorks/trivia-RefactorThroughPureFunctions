@@ -5,30 +5,40 @@
 
 using namespace std;
 
-Game::Game() : currentPlayer(0), places{}, purses{} {
-	for (int i = 0; i < 50; i++) {
-
-		ostringstream oss(ostringstream::out);
-		oss << "Pop Question " << i;
-
-		popQuestions.push_back(oss.str());
-
-		char str[255];
-		sprintf(str, "Science Question %d", i);
-		scienceQuestions.push_back(str);
-
-		char str1[255];
-		sprintf(str1, "Sports Question %d", i);
-		sportsQuestions.push_back(str1);
-
-		rockQuestions.push_back(createRockQuestion(i));
-	}
-}
-
-string Game::createRockQuestion(int index) {
+auto createRockQuestion_Lambda = [](const int index) -> string {
 	char indexStr[127];
 	sprintf(indexStr, "Rock Question %d", index);
 	return indexStr;
+};
+
+auto createSportsQuestion_Lambda = [](const int i) -> string {
+	char str1[255];
+	sprintf(str1, "Sports Question %d", i);
+	string sportsQuestion(str1);
+	return sportsQuestion;
+};
+
+Game::Game() : currentPlayer(0), places{}, purses{} {
+	for (int i = 0; i < 50; i++) {
+
+		doSomething(i);
+
+	}
+}
+
+void Game::doSomething(const int i) {
+	ostringstream oss(ostringstream::out);
+	oss << "Pop Question " << i;
+
+	popQuestions.push_back(oss.str());
+
+	char str[255];
+	sprintf(str, "Science Question %d", i);
+	scienceQuestions.push_back(str);
+
+	sportsQuestions.push_back(createSportsQuestion_Lambda(i));
+
+	rockQuestions.push_back(createRockQuestion_Lambda(i));
 }
 
 bool Game::isPlayable() {

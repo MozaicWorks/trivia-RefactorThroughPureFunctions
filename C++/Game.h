@@ -26,7 +26,7 @@ class Game{
 
 public:
 	Game();
-	string createRockQuestion(int index);
+
 	bool isPlayable();
 	bool add(string playerName);
 
@@ -43,6 +43,9 @@ public:
 
 private:
 	bool didPlayerWin();
+
+	void doSomething(const int i);
+
 };
 
 #endif /* GAME_H_ */
