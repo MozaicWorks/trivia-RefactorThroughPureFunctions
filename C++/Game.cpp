@@ -17,6 +17,12 @@ auto createSportsQuestion_Lambda = [](const int i) -> string {
 	return str1;
 };
 
+auto createScienceQuestion_Lambda = [](const int i) -> string {
+	char str[255];
+	sprintf(str, "Science Question %d", i);
+	return str;
+};
+
 Game::Game() : currentPlayer(0), places{}, purses{} {
 	for (int i = 0; i < 50; i++) {
 
@@ -31,10 +37,7 @@ void Game::doSomething(const int i) {
 
 	popQuestions.push_back(oss.str());
 
-	char str[255];
-	sprintf(str, "Science Question %d", i);
-	scienceQuestions.push_back(str);
-
+	scienceQuestions.push_back(createScienceQuestion_Lambda(i));
 	sportsQuestions.push_back(createSportsQuestion_Lambda(i));
 	rockQuestions.push_back(createRockQuestion_Lambda(i));
 }
